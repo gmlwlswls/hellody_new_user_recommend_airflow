@@ -47,11 +47,20 @@ def read_s3_csv_to_dataframe(bucket, s3_dir):
 df = read_s3_csv_to_dataframe(bucket, s3_dir)
 
 # VOD_ID의 상위 20개를 리스트로 저장
-top_20_vod_ids = df['vod_id'].value_counts().head(20).index.tolist()
+top_20_vod_ids = df['vod_id'].value_counts().head(40).index.tolist()
 popular_list = []
 for movie_id in top_20_vod_ids:
-    vod_list = MOVIES.find_one({'MOVIE_ID':movie_id}, {'_id':0, 'TITLE':1, 'VOD_ID':1, 'POSTER':1})
-    popular_list.append(vod_list)
+    vod_list = MOVIES.find_one(
+        {'$and': [
+            {'MOVIE_ID': movie_id},
+            {'MOVIE_RATING': {'$ne': '18'}},
+            {'MOVIE_RATING': {'$ne': 18}},
+            {'MOVIE_RATING': {'$ne': None}}
+        ]},
+        {'_id': 0, 'TITLE': 1, 'VOD_ID': 1, 'POSTER': 1}
+    )
+    if vod_list is not None:
+        popular_list.append(vod_list)
 # print(popular_list)
 
 # 결과 출력
